@@ -93,7 +93,7 @@ ui <- fluidPage(
           target = "_blank"), 
         ". El código del scrapeo de Wikipedia y la app está disponible en", 
         a("Github.", 
-          href = "https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023", 
+          href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R", 
           target = "_blank"))
     )
   )
