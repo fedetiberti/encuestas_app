@@ -4,7 +4,6 @@ lapply(c("tidyverse", "rvest", "janitor", "scales", "lubridate",
 tablas <- read_html("https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023") %>% 
   html_table(fill=TRUE)
 
-# Function to convert Spanish month names to English
 spanish_to_english_month <- function(spanish_month) {
   month_map <- c("enero" = "January", "febrero" = "February", "marzo" = "March",
                  "abril" = "April", "mayo" = "May", "junio" = "June",
@@ -112,7 +111,6 @@ server <- function(input, output, session) {
                              selected = character(0))
   })
   
-  # Create a reactive expression for filtered_data
   filtered_data <- reactive({
     encuestas_long %>%
       filter(party %in% input$partyInput,
