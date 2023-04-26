@@ -86,14 +86,16 @@ ui <- fluidPage(
     mainPanel(
       ggiraphOutput("pollPlot"),
       downloadButton("downloadData", "Descargar datos"), 
-      p("La fuente de los datos es ", 
+      downloadButton("downloadPlot", "Descargar gráfico"),
+      p("Pasando el cursor sobre los puntos del gráfico se puede ver detalles de cada encuesta. La fuente de los datos es ", 
         a("este artículo de Wikipedia", 
           href = "https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023", 
           target = "_blank"), 
         ". El código del scrapeo de Wikipedia y la app está disponible en", 
         a("Github.", 
           href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R", 
-          target = "_blank"))
+          target = "_blank")),
+      DTOutput("pollTable")
     )
   )
 )
@@ -111,6 +113,7 @@ server <- function(input, output, session) {
                              selected = character(0))
   })
   
+  # Create a reactive expression for filtered_data
   filtered_data <- reactive({
     encuestas_long %>%
       filter(party %in% input$partyInput,
@@ -160,7 +163,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Download handler for filtered_data
+
   output$downloadData <- downloadHandler(
     filename = function() {
       paste("datos_filtrados_encuestas_", Sys.Date(), ".csv", sep = "")
@@ -169,4 +172,60 @@ server <- function(input, output, session) {
       write.csv(filtered_data(), file, row.names = FALSE)
     }
   )
+  
+  output$downloadPlot <- downloadHandler(
+    filename = function() {
+      paste("plot_encuestas_", Sys.Date(), ".png", sep = "")
+    },
+    content = function(file) {
+      filtered_data <- encuestas_long %>%
+        filter(party %in% input$partyInput,
+               fecha >= input$dateRange[1],
+               fecha <= input$dateRange[2],
+               encuestadora %in% input$pollsterInput)
+      
+  
+      p <- ggplot(filtered_data, aes(x = fecha, y = percentage_points, color = party, group = party)) +
+        geom_point(alpha = 0.5) +
+        geom_smooth(method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE) +
+        scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
+                           values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
+        scale_fill_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
+                          values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
+        theme_light() +
+        scale_y_continuous(labels = scales::label_number(suffix = "%")) +
+        scale_x_date(date_labels = "%b-%y") +
+        labs(x = "", y = "", color = "", title = "Encuestas electorales sobre la primera vuelta presidencial de 2023") +
+        theme(plot.title = element_text(face="bold", hjust=0.5),
+              legend.position = "bottom", 
+              axis.text = element_text(face="bold"), 
+              axis.title = element_text(face="bold"), 
+              legend.margin = margin(t = -20, b = 0, l = 0, r = 0, unit = "pt")) 
+      ggsave(file, plot = p, width = 9, height = 6, units = "in", dpi = 300)
+    }
+  )
+  reshaped_filtered_data <- reactive({
+    filtered_data() %>%
+      group_by(fecha, party, encuestadora) %>%
+      summarize(percentage_points = mean(percentage_points, na.rm = TRUE)) %>%
+      ungroup() %>%
+      spread(key = party, value = percentage_points) %>%
+      rename(JxC = `Juntos por el Cambio`,
+             FdT = `Frente de Todos`,
+             LLA = `La Libertad Avanza`,
+             FI = `Frente de Izquierda`,
+             CF = `Consenso Federal`,
+             `Otros/Indecisos` = `Otros - Blanco - Indecisos`) %>% 
+      relocate(fecha, encuestadora, JxC, FdT, LLA, FI, CF,`Otros/Indecisos` )
+  })
+  
+  output$pollTable <- DT::renderDataTable({
+    datatable_to_display <- DT::datatable(reshaped_filtered_data(),
+                                          options = list(order = list(list(0, "desc")), 
+                                                         pageLength=20),
+                                          rownames = FALSE,
+                                          filter = "none")
+    
+    DT::formatRound(datatable_to_display, columns = 3:8, digits = 1)
+  })
 }
