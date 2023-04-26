@@ -81,20 +81,28 @@ ui <- fluidPage(
                          choices = unique(encuestas_long$encuestadora),
                          selected = unique(encuestas_long$encuestadora)),
       actionButton("selectAll", "Seleccionar todas"),
-      actionButton("unselectAll", "Eliminar todas")
+      actionButton("unselectAll", "Eliminar todas"),
+      p("La fuente de los datos es ", 
+        a("este artículo", 
+          href = "https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023", 
+          target = "_blank"), 
+        ". El código del scrapeo del artículo y la app está disponible en", 
+        a("Github.", 
+          href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R", 
+          target = "_blank"), " Si tenés comentarios o sugerencias, contactame por ", 
+        a("Twitter", 
+          href = "https://twitter.com/fedetiberti", 
+          target = "_blank"), 
+        " o a través de mi ", 
+        a("página web.", 
+          href = "https://fedetiberti.com", 
+          target = "_blank"))
     ),
     mainPanel(
       ggiraphOutput("pollPlot"),
       downloadButton("downloadData", "Descargar datos"), 
       downloadButton("downloadPlot", "Descargar gráfico"),
-      p("Pasando el cursor sobre los puntos del gráfico se puede ver detalles de cada encuesta. La fuente de los datos es ", 
-        a("este artículo de Wikipedia", 
-          href = "https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023", 
-          target = "_blank"), 
-        ". El código del scrapeo de Wikipedia y la app está disponible en", 
-        a("Github.", 
-          href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R", 
-          target = "_blank")),
+      p("Pasando el cursor sobre los puntos del gráfico se puede ver detalles de cada encuesta."),
       DTOutput("pollTable")
     )
   )
@@ -204,28 +212,23 @@ server <- function(input, output, session) {
       ggsave(file, plot = p, width = 9, height = 6, units = "in", dpi = 300)
     }
   )
+  
   reshaped_filtered_data <- reactive({
     filtered_data() %>%
-      group_by(fecha, party, encuestadora) %>%
+      rename(Fecha=fecha, Encuestadora=encuestadora) %>% 
+      group_by(Fecha, party, Encuestadora) %>%
       summarize(percentage_points = mean(percentage_points, na.rm = TRUE)) %>%
       ungroup() %>%
-      spread(key = party, value = percentage_points) %>%
-      rename(JxC = `Juntos por el Cambio`,
-             FdT = `Frente de Todos`,
-             LLA = `La Libertad Avanza`,
-             FI = `Frente de Izquierda`,
-             CF = `Consenso Federal`,
-             `Otros/Indecisos` = `Otros - Blanco - Indecisos`) %>% 
-      relocate(fecha, encuestadora, JxC, FdT, LLA, FI, CF,`Otros/Indecisos` )
+      pivot_wider(names_from = party, 
+                  values_from = percentage_points) %>%
+      relocate(Fecha, Encuestadora)
   })
   
   output$pollTable <- DT::renderDataTable({
-    datatable_to_display <- DT::datatable(reshaped_filtered_data(),
+    datatable_to_display <- DT::datatable(reshaped_filtered_data() %>% mutate_if(is.numeric, ~round(., digits = 1)),
                                           options = list(order = list(list(0, "desc")), 
                                                          pageLength=20),
                                           rownames = FALSE,
                                           filter = "none")
-    
-    DT::formatRound(datatable_to_display, columns = 3:8, digits = 1)
   })
 }
