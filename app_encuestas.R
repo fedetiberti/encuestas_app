@@ -215,13 +215,15 @@ server <- function(input, output, session) {
   
   reshaped_filtered_data <- reactive({
     filtered_data() %>%
-      rename(Fecha=fecha, Encuestadora=encuestadora) %>% 
+      rename(Fecha = fecha, Encuestadora = encuestadora) %>% 
       group_by(Fecha, party, Encuestadora) %>%
-      summarize(percentage_points = mean(percentage_points, na.rm = TRUE)) %>%
+      mutate(row_num = row_number()) %>%
       ungroup() %>%
       pivot_wider(names_from = party, 
-                  values_from = percentage_points) %>%
-      relocate(Fecha, Encuestadora)
+                  values_from = percentage_points,
+                  id_cols = c(Fecha, Encuestadora, row_num)) %>%
+      relocate(Fecha, Encuestadora) %>%
+      select(-row_num)
   })
   
   output$pollTable <- DT::renderDataTable({
