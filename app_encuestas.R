@@ -83,10 +83,10 @@ ui <- fluidPage(
       actionButton("selectAll", "Seleccionar todas"),
       actionButton("unselectAll", "Eliminar todas"),
       p("La fuente de los datos es ", 
-        a("este artículo", 
+        a("este artículo.", 
           href = "https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023", 
           target = "_blank"), 
-        ". El código del scrapeo del artículo y la app está disponible en", 
+        "El código del scrapeo del artículo y la app está disponible en", 
         a("Github.", 
           href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R", 
           target = "_blank"), " Si tenés comentarios o sugerencias, contactame por ", 
@@ -96,7 +96,8 @@ ui <- fluidPage(
         " o a través de mi ", 
         a("página web.", 
           href = "https://fedetiberti.com", 
-          target = "_blank"))
+          target = "_blank"), 
+        "La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados.")
     ),
     mainPanel(
       ggiraphOutput("pollPlot"),
