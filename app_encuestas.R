@@ -152,7 +152,7 @@ server <- function(input, output, session) {
                                                                                                                      "Encuestadora:", encuestadora, "<br>",
                                                                                                                      "Fecha:", format(fecha, "%Y-%m-%d")))) +
         geom_point_interactive(alpha = 0.5) +
-        geom_smooth(method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE) +
+        geom_smooth(method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=0.5) +
         scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
                            values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
         scale_fill_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
@@ -196,7 +196,7 @@ server <- function(input, output, session) {
   
       p <- ggplot(filtered_data, aes(x = fecha, y = percentage_points, color = party, group = party)) +
         geom_point(alpha = 0.5) +
-        geom_smooth(method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE) +
+        geom_smooth(method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=0.5) +
         scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
                            values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
         scale_fill_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
