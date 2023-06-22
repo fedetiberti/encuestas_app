@@ -52,7 +52,16 @@ encuestas <- primera %>%
          obi = otros+blanco+indecisos) %>% 
   select(-c(otros, blanco, indecisos, ventaja))
 
-encuestas_long <- encuestas %>% 
+#Proyecto indecisos
+encuestas2 <- primera %>%
+ bind_rows(segunda) %>%
+ mutate_at(vars(4:12), ~ifelse(. == "-", NA, as.numeric(gsub(",", ".", .)))) %>%
+ mutate_at(vars(3), ~ifelse(. == "-", NA, as.numeric(gsub("\\.", "", gsub(",", ".", .))))) %>%
+ mutate(across(c(otros, blanco, indecisos), ~ ifelse(is.na(.), 0, .)), ob =otros+blanco,
+        noind = 100-indecisos,fdtn=fdt/noind*100,jxcn=jxc/noind*100,llan=lla/noind*100,fitn=fit/noind*100,cfn=cf/noind*100,obn=ob/noind*100) %>%
+ select(-c(fdt,jxc,lla,fit,cf,indecisos,ob,noind,otros, blanco, ventaja))
+
+datos_sin_proyectar_indecisos <- encuestas %>%
   pivot_longer(cols =4:9, 
                names_to = "party", 
                values_to = "percentage_points")%>%
@@ -64,10 +73,27 @@ mutate(party = case_when(party=="cf" ~ "Consenso Federal",
                          party=="obi" ~ "Otros - Blanco - Indecisos")) %>% 
   mutate(encuestadora = gsub("\\[\\d+\\]", "", encuestadora))
 
+#Armo un segundo dataframe con los datos proyectados
+datos_proyeccion_indecisos <- encuestas2 %>%
+ pivot_longer(cols =4:9,
+              names_to = "party",
+              values_to = "percentage_points")%>%
+ mutate(party = case_when(party=="cfn" ~ "Consenso Federal",
+                          party=="fdtn" ~ "Frente de Todos",
+                          party=="fitn" ~ "Frente de Izquierda",
+                          party=="jxcn" ~ "Juntos por el Cambio",
+                          party=="llan" ~ "La Libertad Avanza",
+                          party=="obn" ~ "Otros - Blanco - Indecisos")) %>%
+ mutate(encuestadora = gsub("\\[\\d+\\]", "", encuestadora))
+
+df_list<-list("datos_sin_proyectar_indecisos","datos_proyeccion_indecisos")
 
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
+         #Agrego selector de dataframe
+      selectInput("data", "Elegir datos",
+      choices=df_list, selected=df_list[[1]]),
       checkboxGroupInput("partyInput", "Seleccione partidos", 
                          choices = c("Frente de Todos", "Juntos por el Cambio", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"), 
                          selected = c("Frente de Todos", "Juntos por el Cambio", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos")),
@@ -121,10 +147,13 @@ server <- function(input, output, session) {
     updateCheckboxGroupInput(session, "pollsterInput",
                              selected = character(0))
   })
-  
+ #eventReactive que actua sobre el dataframe seleccionado 
+ encuestas_long <- eventReactive(input$data, {
+  get(input$data)
+ })
   # Create a reactive expression for filtered_data
   filtered_data <- reactive({
-    encuestas_long %>%
+  req(encuestas_long()) %>%
       filter(party %in% input$partyInput,
              fecha >= input$dateRange[1],
              fecha <= input$dateRange[2],
@@ -132,7 +161,7 @@ server <- function(input, output, session) {
   })
   
   output$pollPlot <- renderggiraph({
-    filtered_data <- encuestas_long %>%
+  filtered_data <-  req(encuestas_long()) %>%
       filter(party %in% input$partyInput,
              fecha >= input$dateRange[1],
              fecha <= input$dateRange[2],
