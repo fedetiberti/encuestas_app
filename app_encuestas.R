@@ -72,7 +72,8 @@ mutate(party = case_when(party=="cf" ~ "Consenso Federal",
                          party=="lla" ~ "La Libertad Avanza", 
                          party=="obi" ~ "Otros - Blanco - Indecisos")) %>% 
   mutate(encuestadora = gsub("\\[\\d+\\]", "", encuestadora))
-
+#Copio el dataframe para que fluidPage tenga de donde sacar los datos
+encuestas_long<-datos_sin_proyectar_indecisos
 #Armo un segundo dataframe con los datos proyectados
 datos_proyeccion_indecisos <- encuestas2 %>%
  pivot_longer(cols =4:9,
