@@ -218,7 +218,7 @@ server <- function(input, output, session) {
       paste("plot_encuestas_", Sys.Date(), ".png", sep = "")
     },
     content = function(file) {
-      filtered_data <- encuestas_long %>%
+        plot_data<-req(encuestas_long()) %>%
         filter(party %in% input$partyInput,
                fecha >= input$dateRange[1],
                fecha <= input$dateRange[2],
