@@ -106,8 +106,8 @@ ui <- fluidPage(
       checkboxGroupInput("pollsterInput", "Seleccione encuestadoras", 
                       choices = sort(unique(encuestas_long$encuestadora)),
                       selected = sort(unique(encuestas_long$encuestadora))),
-      actionButton("selectAll", "Seleccionar todas"),
-      actionButton("unselectAll", "Eliminar todas"),
+      actionButton("", "Seleccionar todas"),
+      actionButton("un", "Eliminar todas"),
       p("La fuente de los datos es ", 
         a("este artículo.", 
           href = "https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023", 
@@ -138,10 +138,11 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-  observeEvent(input$selectAll, {
-    updateCheckboxGroupInput(session, "pollsterInput",
-                             selected = unique(encuestas_long$encuestadora))
-  })
+ observeEvent(input$selectAll, {
+  mydata <- req(encuestas_long())
+  updateCheckboxGroupInput(session, "pollsterInput",
+                           selected = sort(unique(mydata$encuestadora)))
+ })
   
   observeEvent(input$unselectAll, {
     updateCheckboxGroupInput(session, "pollsterInput",
