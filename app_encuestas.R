@@ -1,5 +1,12 @@
-lapply(c("tidyverse", "rvest", "janitor", "scales", "lubridate", 
-         "shiny", "rsconnect", "ggiraph"), require, character.only=TRUE)
+#lapply(c("tidyverse", "rvest", "janitor", "scales", "lubridate", "shiny", "rsconnect", "ggiraph"), require, character.only=TRUE)
+library(tidyverse)
+library(rvest)
+library(janitor)
+library(scales)
+library(lubridate)
+library(shiny)
+library(rsconnect)
+library(ggiraph)
 
 tablas <- read_html("https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023") %>% 
   html_table(fill=TRUE)
@@ -275,3 +282,5 @@ server <- function(input, output, session) {
                                           filter = "none")
   })
 }
+
+shinyApp(ui = ui, server = server)
