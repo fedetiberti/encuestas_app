@@ -119,7 +119,9 @@ ui <- fluidPage(
                      end = max(encuestas_long$fecha, na.rm=TRUE),
                      min = min(encuestas_long$fecha, na.rm=TRUE),
                      max = max(encuestas_long$fecha, na.rm=TRUE)),
-      checkboxInput("showSE", "Mostrar intervalos de confianza", TRUE),         
+      checkboxInput("showSE", "Mostrar intervalos de confianza", TRUE),
+      #agrego slider para controlar el suavizado LOESS
+      sliderInput("slider", "Suavizado LOESS (span)", 0.1, 0.9, 0.5, step = 0.1),
       #agrego opción para mostrar aparte los resultados electorales 2021
       checkboxInput("showElection", "Mostrar resultados elecciones 2021", TRUE),
       checkboxGroupInput("pollsterInput", "Seleccione encuestadoras", 
@@ -198,7 +200,7 @@ server <- function(input, output, session) {
                                                                                                                      "Fecha:", format(fecha, "%Y-%m-%d")))) +
         geom_point_interactive(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),alpha = 0.5) +
         geom_point_interactive(data=subset(filtered_data(), encuestadora=="Elecciones legislativas" & input$showElection == TRUE),alpha = 0.8,size=5,shape=18) +
-        geom_smooth(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=0.5) +
+        geom_smooth(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=input$slider) +
         scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
                            values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
         scale_fill_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
@@ -243,7 +245,7 @@ server <- function(input, output, session) {
       p <- ggplot(filtered_data(), aes(x = fecha, y = percentage_points, color = party, group = party)) +
         geom_point(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),alpha = 0.5) +
         geom_point(data=subset(filtered_data(), encuestadora=="Elecciones legislativas" & input$showElection == TRUE),alpha = 0.8,size=5,shape=18) +
-        geom_smooth(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=0.5) +
+        geom_smooth(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=input$slider) +
         scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
                            values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
         scale_fill_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
