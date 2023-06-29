@@ -48,6 +48,8 @@ encuestas <- primera %>%
   bind_rows(segunda) %>% 
 #Filtro filas con fechas vacías
   filter(!is.na(fecha)) %>%
+#Filtro encuesta que no es de intención de voto
+  filter(fecha!="2021-12-21") %>%
   mutate_at(vars(4:12), ~ifelse(. == "-", NA, as.numeric(gsub(",", ".", .)))) %>% 
   mutate_at(vars(3), ~ifelse(. == "-", NA, as.numeric(gsub("\\.", "", gsub(",", ".", .))))) %>% 
   mutate(across(c(otros, blanco, indecisos), ~ ifelse(is.na(.), 0, .)),
@@ -59,6 +61,8 @@ encuestas2 <- primera %>%
  bind_rows(segunda) %>%
 #Filtro filas con fechas vacías
   filter(!is.na(fecha)) %>%
+#Filtro encuesta que no es de intención de voto
+  filter(fecha!="2021-12-21") %>%
  mutate_at(vars(4:12), ~ifelse(. == "-", NA, as.numeric(gsub(",", ".", .)))) %>%
  mutate_at(vars(3), ~ifelse(. == "-", NA, as.numeric(gsub("\\.", "", gsub(",", ".", .))))) %>%
  mutate(across(c(otros, blanco, indecisos), ~ ifelse(is.na(.), 0, .)), ob =otros+blanco,
