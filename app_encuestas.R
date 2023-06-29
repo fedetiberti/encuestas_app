@@ -96,7 +96,7 @@ datos_proyeccion_indecisos <- encuestas2 %>%
                           party=="obn" ~ "Otros - Blanco - Indecisos")) %>%
  mutate(encuestadora = gsub("\\[\\d+\\]", "", encuestadora))
 
-df_list<-list("datos_sin_proyectar_indecisos","datos_proyeccion_indecisos")
+df_list<-list("datos_proyeccion_indecisos","datos_sin_proyectar_indecisos")
 
 ui <- fluidPage(
   sidebarLayout(
@@ -126,16 +126,12 @@ ui <- fluidPage(
           target = "_blank"), 
         "El código del scrapeo del artículo y la app está disponible en", 
         a("Github.", 
+          href = "https://github.com/rquiroga7/encuestas_app/blob/main/app_encuestas.R", 
+          target = "_blank"), " Código forkeado del repositorio original de ", 
+        a("Federico Tiberti", 
           href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R", 
-          target = "_blank"), " Si tenés comentarios o sugerencias, contactame por ", 
-        a("Twitter", 
-          href = "https://twitter.com/fedetiberti", 
           target = "_blank"), 
-        " o a través de mi ", 
-        a("página web.", 
-          href = "https://fedetiberti.com", 
-          target = "_blank"), 
-        "La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados.")
+        "al cuál agregué las opciones de proyectar votos indecisos, y comparar con los resultados electorales 2021. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados.")
     ),
     mainPanel(
       ggiraphOutput("pollPlot"),
