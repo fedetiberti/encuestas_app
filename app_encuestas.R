@@ -40,7 +40,8 @@ segunda <- tablas[2] %>% as.data.frame() %>%
   slice(2:nrow(.)) %>% 
   setNames(c("fecha", "encuestadora", "muestra", "fdt", "jxc",
              "lla", "fit", "otros", "blanco", "indecisos", "ventaja")) %>% 
-  slice(-87)  %>% 
+#ya no es necesario  
+#slice(-87)  %>% 
   mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01"))
 
 
@@ -111,7 +112,9 @@ ui <- fluidPage(
                      end = max(encuestas_long$fecha, na.rm=TRUE),
                      min = min(encuestas_long$fecha, na.rm=TRUE),
                      max = max(encuestas_long$fecha, na.rm=TRUE)),
-      checkboxInput("showSE", "Mostrar intervalos de confianza", TRUE),
+      checkboxInput("showSE", "Mostrar intervalos de confianza", TRUE),         
+      #agrego opción para mostrar aparte los resultados electorales 2021
+      checkboxInput("showElection", "Mostrar resultados elecciones 2021", TRUE),
       checkboxGroupInput("pollsterInput", "Seleccione encuestadoras", 
                       choices = sort(unique(encuestas_long$encuestadora)),
                       selected = sort(unique(encuestas_long$encuestadora))),
@@ -190,7 +193,8 @@ server <- function(input, output, session) {
                                                                                                                      "Porcentaje:", round(percentage_points, 2), "%<br>",
                                                                                                                      "Encuestadora:", encuestadora, "<br>",
                                                                                                                      "Fecha:", format(fecha, "%Y-%m-%d")))) +
-        geom_point_interactive(alpha = 0.5) +
+        geom_point_interactive(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),alpha = 0.5) +
+        geom_point_interactive(data=subset(filtered_data(), encuestadora=="Elecciones legislativas" & input$showElection == TRUE),alpha = 0.8,size=5,shape=18) +
         geom_smooth(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=0.5) +
         scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
                            values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
@@ -234,7 +238,8 @@ server <- function(input, output, session) {
       
   
       p <- ggplot(filtered_data(), aes(x = fecha, y = percentage_points, color = party, group = party)) +
-        geom_point(alpha = 0.5) +
+        geom_point(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),alpha = 0.5) +
+        geom_point(data=subset(filtered_data(), encuestadora=="Elecciones legislativas" & input$showElection == TRUE),alpha = 0.8,size=5,shape=18) +
         geom_smooth(data=subset(filtered_data(), encuestadora!="Elecciones legislativas"),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=0.5) +
         scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
                            values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
