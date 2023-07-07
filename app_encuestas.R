@@ -142,11 +142,11 @@ ui <- fluidPage(
      "El código del scrapeo del artículo y la app está disponible en",
      a("Github.",
        href = "https://github.com/rquiroga7/encuestas_app/blob/main/app_encuestas.R",
-       target = "_blank"), " Código forkeado del repositorio original de ",
+       target = "_blank"), " Código mantenido por Rodrigo Quiroga, forkeado del repositorio original de ",
      a("Federico Tiberti",
        href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R",
        target = "_blank"),
-     "al cuál agregué las opciones de proyectar votos indecisos, y comparar con los resultados electorales 2021. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados.")
+     "al cuál agregué las opciones de proyectar votos indecisos, comparar con los resultados electorales 2021 y un slider para ajustar el suavizado. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados.")
   ),
   mainPanel(
    ggiraphOutput("pollPlot"),
