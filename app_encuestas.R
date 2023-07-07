@@ -146,7 +146,7 @@ ui <- fluidPage(
      a("Federico Tiberti",
        href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R",
        target = "_blank"),
-     "al cuál agregué las opciones de proyectar votos indecisos, comparar con los resultados electorales 2021 y un slider para ajustar el suavizado. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados.")
+     "al cuál agregué las opciones de proyectar votos indecisos, comparar con los resultados electorales 2021 y un slider para ajustar el suavizado. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados. Nota: Removiendo las encuestas de UdeSA y Management & Fit se obtiene un mejor ajuste a los datos electorales 2021.")
   ),
   mainPanel(
    ggiraphOutput("pollPlot"),
