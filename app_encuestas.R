@@ -19,7 +19,6 @@ spanish_to_english_month <- function(spanish_month) {
  return(month_map[tolower(spanish_month)])
 }
 
-
 extract_and_parse_date <- function(date_text) {
  if (str_detect(date_text, "-")) {
   date_text <- str_split(date_text, "-", simplify = TRUE)[, 2]
@@ -94,6 +93,19 @@ datos_sin_proyectar_indecisos <- encuestas %>%
                           party=="lla" ~ "La Libertad Avanza",
                           party=="obi" ~ "Otros - Blanco - Indecisos")) %>%
  mutate(encuestadora = gsub("\\[\\d+\\]", "", encuestadora))
+
+#DEDUPLICATES FACTORS IN ENCUESTADORA NAME
+datos_sin_proyectar_indecisos$encuestadora<-as.factor(datos_sin_proyectar_indecisos$encuestadora)
+matches <- unlist(lapply(1:(length(levels(datos_sin_proyectar_indecisos[["encuestadora"]]))-1),
+                         function(x) {max(x,x + agrep(
+                          pattern=levels(datos_sin_proyectar_indecisos[["encuestadora"]])[x],
+                          x=levels(datos_sin_proyectar_indecisos[["encuestadora"]])[-seq_len(x)]
+                         ))}
+))
+#assigns new levels (omits the last level because that doesn't change)
+levels(datos_sin_proyectar_indecisos[["encuestadora"]])[-length(levels(datos_sin_proyectar_indecisos[["encuestadora"]]))] <-  levels(datos_sin_proyectar_indecisos[["encuestadora"]])[matches]
+
+
 #Copio el dataframe para que fluidPage tenga de donde sacar los datos
 encuestas_long<-datos_sin_proyectar_indecisos
 #Armo un segundo dataframe con los datos proyectados
@@ -108,8 +120,19 @@ datos_proyeccion_indecisos <- encuestas2 %>%
                           party=="llan" ~ "La Libertad Avanza",
                           party=="obn" ~ "Otros - Blanco - Indecisos")) %>%
  mutate(encuestadora = gsub("\\[\\d+\\]", "", encuestadora))
+#DEDUPLICATES FACTORS IN ENCUESTADORA NAME
+datos_proyeccion_indecisos$encuestadora<-as.factor(datos_proyeccion_indecisos$encuestadora)
+matches <- unlist(lapply(1:(length(levels(datos_proyeccion_indecisos[["encuestadora"]]))-1),
+                         function(x) {max(x,x + agrep(
+                          pattern=levels(datos_proyeccion_indecisos[["encuestadora"]])[x],
+                          x=levels(datos_proyeccion_indecisos[["encuestadora"]])[-seq_len(x)]
+                         ))}
+))
+#assigns new levels (omits the last level because that doesn't change)
+levels(datos_proyeccion_indecisos[["encuestadora"]])[-length(levels(datos_proyeccion_indecisos[["encuestadora"]]))] <-  levels(datos_proyeccion_indecisos[["encuestadora"]])[matches]
 
 df_list<-list("datos_proyeccion_indecisos","datos_sin_proyectar_indecisos")
+
 enc3<-datos_proyeccion_indecisos %>% group_by(encuestadora,fecha, muestra) %>% summarize(suma=sum(percentage_points, na.rm = TRUE)) %>% group_by(encuestadora) %>% filter( n() >2) %>% pull(encuestadora) %>% unique()
 
 ui <- fluidPage(
@@ -131,13 +154,12 @@ ui <- fluidPage(
    sliderInput("slider", "Suavizado LOESS (span)", 0.1, 0.9, 0.5, step = 0.1),
    #agrego opción para mostrar aparte los resultados electorales 2021
    checkboxInput("showElection", "Mostrar resultados elecciones 2021", TRUE),
+   actionButton("selectMore3", "Incluir enc con 3 o + encuestas (default)"),
    actionButton("selectAll", "Incluir todas las encuestadoras"),
-   actionButton("selectMore3", "Incluir enc con 3 o + encuestas"),
-   actionButton("unselectAll", "No incluir ninguna encuestadora"),
+      actionButton("unselectAll", "No incluir ninguna encuestadora"),
    checkboxGroupInput("pollsterInput", "Seleccione encuestadoras",
                       choices = sort(unique(encuestas_long$encuestadora)),
-                      selected = sort(unique(encuestas_long$encuestadora))),
-
+                      selected = encuestas_long %>% filter( ((encuestadora %in% enc3 & encuestadora != "Management & Fit​"))| encuestadora=="Elecciones legislativas") %>% pull(encuestadora) %>% unique()),
    p("La fuente de los datos es ",
      a("este artículo.",
        href = "https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023",
@@ -149,7 +171,7 @@ ui <- fluidPage(
      a("Federico Tiberti",
        href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R",
        target = "_blank"),
-     "al cuál agregué las opciones de proyectar votos indecisos, comparar con los resultados electorales 2021 y un slider para ajustar el suavizado. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados. Nota: Removiendo las encuestas de UdeSA y Management & Fit se obtiene un mejor ajuste a los datos electorales 2021.")
+     "al cuál agregué las opciones de proyectar votos indecisos, comparar con los resultados electorales 2021 y un slider para ajustar el suavizado. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados. Nota: Por default sólo se incluye en el análisis a encuestadoras con 3 o más encuestas, excluyendo a Management & Fit con lo cual se obtiene un mejor ajuste a los datos electorales 2021.")
   ),
   mainPanel(
    ggiraphOutput("pollPlot"),
@@ -164,16 +186,16 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
 
- observeEvent(input$selectAll, {
-  mydata <- req(encuestas_long())
-  updateCheckboxGroupInput(session, "pollsterInput",
-                           selected = sort(unique(mydata$encuestadora)))
- })
 
  observeEvent(input$selectMore3, {
   mydata <- req(encuestas_long())
   updateCheckboxGroupInput(session, "pollsterInput",
-                           selected = datos_proyeccion_indecisos %>% filter(encuestadora %in% enc3 | encuestadora=="Elecciones legislativas") %>% pull(encuestadora) %>% unique())
+                           selected = mydata %>% filter( ((encuestadora %in% enc3 & encuestadora != "Management & Fit​"))| encuestadora=="Elecciones legislativas") %>% pull(encuestadora) %>% unique())
+ })
+  observeEvent(input$selectAll, {
+  mydata <- req(encuestas_long())
+  updateCheckboxGroupInput(session, "pollsterInput",
+                           selected = sort(unique(mydata$encuestadora)))
  })
 
  observeEvent(input$unselectAll, {
