@@ -63,7 +63,7 @@ encuestas <- primera %>%
   #Filtro filas con fechas vacías
   filter(!is.na(fecha)) %>%
   #Filtro encuesta que no es de intención de voto
-  filter(fecha!="2021-12-21") %>%
+  filter(fecha!="2023-08-31") %>%
   mutate_at(vars(4:12), ~ifelse(. == "-", NA, as.numeric(gsub(",", ".", .)))) %>%
   mutate_at(vars(3), ~ifelse(. == "-", NA, as.numeric(gsub("\\.", "", gsub(",", ".", .))))) %>%
   mutate(across(c(otros, blanco, indecisos), ~ ifelse(is.na(.), 0, .)),
@@ -108,7 +108,7 @@ matches <- unlist(lapply(1:(length(levels(datos_sin_proyectar_indecisos[["encues
 ))
 #assigns new levels (omits the last level because that doesn't change)
 levels(datos_sin_proyectar_indecisos[["encuestadora"]])[-length(levels(datos_sin_proyectar_indecisos[["encuestadora"]]))] <-  levels(datos_sin_proyectar_indecisos[["encuestadora"]])[matches]
-
+datos_sin_proyectar_indecisos$encuestadora<-str_trim(datos_sin_proyectar_indecisos$encuestadora)
 
 #Copio el dataframe para que fluidPage tenga de donde sacar los datos
 encuestas_long<-datos_sin_proyectar_indecisos
@@ -161,12 +161,12 @@ ui <- fluidPage(
       #agrego opción para mostrar aparte los resultados electorales 2021
       checkboxInput("showElection", "Mostrar resultados elecciones 2021 y 2023", TRUE),
       checkboxInput("separate_trends", "Separar tendencias encuestas pre y post elecciones primarias 2023", TRUE),
-      actionButton("selectMore3", "Incluir enc con 3 o + encuestas (default)"),
+      actionButton("selectMore3", "Incluir enc con 5 o + encuestas (default)"),
       actionButton("selectAll", "Incluir todas las encuestadoras"),
       actionButton("unselectAll", "No incluir ninguna encuestadora"),
       checkboxGroupInput("pollsterInput", "Seleccione encuestadoras",
                          choices = sort(unique(encuestas_long$encuestadora)),
-                         selected = encuestas_long %>% filter( (encuestadora %in% enc3) | (encuestadora=="Elecciones legislativas" | encuestadora=="Elecciones primarias" | encuestadora=="Elecciones generales") ) %>% pull(encuestadora) %>% unique()),
+                         selected = encuestas_long %>% filter( encuestadora %in% enc3 | encuestadora %in% c("Elecciones legislativas","Elecciones primarias" ,"Elecciones generales") ) %>% pull(encuestadora) %>% unique()),
       p("La fuente de los datos es ",
         a("este artículo.",
           href = "https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023",
@@ -197,7 +197,7 @@ server <- function(input, output, session) {
   observeEvent(input$selectMore3, {
     mydata <- req(encuestas_long())
     updateCheckboxGroupInput(session, "pollsterInput",
-                             selected = mydata %>% filter( (encuestadora %in% enc3) | (encuestadora=="Elecciones legislativas" | encuestadora=="Elecciones primarias" | encuestadora=="Elecciones generales") ) %>% pull(encuestadora) %>% unique())
+                             selected = mydata %>% filter( encuestadora %in% enc3 | encuestadora %in% c("Elecciones legislativas","Elecciones primarias" ,"Elecciones generales") ) %>% pull(encuestadora) %>% unique())
   })
   observeEvent(input$selectAll, {
     mydata <- req(encuestas_long())
@@ -247,7 +247,7 @@ server <- function(input, output, session) {
         geom_point_interactive(data=subset(filtered_data(), (encuestadora=="Elecciones legislativas" | encuestadora=="Elecciones generales" | encuestadora=="Elecciones primarias") & input$showElection == TRUE),alpha = 1,size=6,shape=1) +
         geom_smooth(data=subset(filtered_data(), (input$separate_trends==FALSE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=input$slider) +
         geom_smooth(data=subset(filtered_data(), (fecha<=as.Date("2023-08-13") & input$separate_trends==TRUE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=input$slider) +
-        geom_smooth(data=subset(filtered_data(), (fecha>as.Date("2023-08-13") & input$separate_trends==TRUE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE*nover25, aes(fill = party), show.legend = FALSE, span=input$slider2) +
+        geom_smooth(data=subset(filtered_data(), (fecha>as.Date("2023-08-13") & input$separate_trends==TRUE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE*nover25, aes(fill = party), show.legend = FALSE, span=input$slider2,family = "symmetric") +
 
         scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
                            values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
@@ -298,7 +298,7 @@ server <- function(input, output, session) {
         geom_point_interactive(data=subset(filtered_data(), (encuestadora=="Elecciones legislativas" | encuestadora=="Elecciones generales" | encuestadora=="Elecciones primarias") & input$showElection == TRUE),alpha = 1,size=6,shape=1) +
         geom_smooth(data=subset(filtered_data(), (input$separate_trends==FALSE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=input$slider) +
         geom_smooth(data=subset(filtered_data(), (fecha<=as.Date("2023-08-13") & input$separate_trends==TRUE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=input$slider) +
-        geom_smooth(data=subset(filtered_data(), (fecha>as.Date("2023-08-13") & input$separate_trends==TRUE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE*nover25, aes(fill = party), show.legend = FALSE, span=input$slider2) +
+        geom_smooth(data=subset(filtered_data(), (fecha>as.Date("2023-08-13") & input$separate_trends==TRUE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE*nover25, aes(fill = party), show.legend = FALSE, span=input$slider2,family = "symmetric") +
         scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
                            values = c("yellow3", "steelblue3", "black", "tomato3", "springgreen3", "gray66")) +
         scale_fill_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Consenso Federal", "Otros - Blanco - Indecisos"),
