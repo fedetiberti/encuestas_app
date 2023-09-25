@@ -10,4 +10,4 @@ Versión interactiva disponible aquí:
 https://rquiroga7.shinyapps.io/Agregador_Encuestas/
 
 El gráfico generado se asimila al siguiente:
-![plot_encuestas_2023-09-20](https://github.com/rquiroga7/encuestas_app/assets/8103453/19b2e0b5-9a43-4557-8a1c-ef779a82cb40)
+![plot_encuestas_2023-09-25](https://github.com/rquiroga7/encuestas_app/assets/8103453/f1ed3ceb-5b5d-4356-89fa-d9c593a14e6c)
