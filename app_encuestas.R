@@ -235,7 +235,7 @@ server <- function(input, output, session) {
     scale_fill_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Hacemos", "Otros - Blanco - Indecisos"),
                       values = c("#FFDA00", "#009FE3", "purple", "tomato3", "#283084", "gray66")) +
     theme_light() +
-    scale_y_continuous(labels = scales::label_number(suffix = "%")) +
+    scale_y_continuous(breaks = seq(0, 50, by = 5), minor_breaks = NULL ,labels = scales::label_number(suffix = "%")) +
     scale_x_date(date_labels = "%b-%y") +
     labs(x = "", y = "", color = "", title = "Encuestas electorales sobre la primera vuelta presidencial de 2023") +
     theme(plot.title = element_text(face="bold", hjust=0.5),
@@ -285,7 +285,7 @@ server <- function(input, output, session) {
     scale_fill_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Hacemos", "Otros - Blanco - Indecisos"),
                       values = c("#FFDA00", "#009FE3", "purple", "tomato3", "#283084", "gray66")) +
     theme_light() +
-    scale_y_continuous(labels = scales::label_number(suffix = "%")) +
+    scale_y_continuous(breaks = seq(0, 50, by = 5), minor_breaks = NULL ,labels = scales::label_number(suffix = "%")) +
     scale_x_date(date_labels = "%b-%y") +
     labs(x = "", y = "", color = "", title = "Encuestas electorales sobre la primera vuelta presidencial de 2023") +
     theme(plot.title = element_text(face="bold", hjust=0.5),
