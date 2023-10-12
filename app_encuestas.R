@@ -7,6 +7,7 @@ library(lubridate)
 library(shiny)
 library(rsconnect)
 library(ggiraph)
+library(textclean)
 
 tablas <- read_html("https://es.wikipedia.org/wiki/Anexo:Encuestas_de_intenci%C3%B3n_de_voto_para_las_elecciones_presidenciales_de_Argentina_de_2023") %>%
  html_table(fill=TRUE)
@@ -42,20 +43,22 @@ primera <- tablas[1] %>% as.data.frame() %>%
  setNames(c("fecha", "encuestadora", "muestra", "fdt", "jxc",
             "lla", "cf", "fit", "otros", "blanco", "indecisos", "ventaja")) %>%
  filter(encuestadora != "5 de agosto de 2023") %>%
- mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01")) %>% filter( !is.na(fecha))
+ mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01")) %>% filter( !is.na(fecha)) %>%
+ mutate(encuestadora = replace_non_ascii(encuestadora))
 
 segunda <- tablas[2] %>% as.data.frame() %>%
  slice(1:nrow(.)) %>%
  setNames(c("fecha", "encuestadora", "muestra", "fdt", "jxc",
             "lla", "fit", "otros", "blanco", "indecisos", "ventaja")) %>%
- mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01")) %>% filter( !is.na(fecha))
+ mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01")) %>% filter( !is.na(fecha)) %>%
+ mutate(encuestadora = replace_non_ascii(encuestadora))
 
 tercera <- tablas[3] %>% as.data.frame() %>%
  slice(1:nrow(.)) %>%
  setNames(c("fecha", "encuestadora", "muestra", "fdt", "jxc",
             "lla", "fit", "otros", "blanco", "indecisos", "ventaja")) %>%
- mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01")) %>% filter( !is.na(fecha))
-
+ mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01")) %>% filter( !is.na(fecha)) %>%
+ mutate(encuestadora = replace_non_ascii(encuestadora))
 
 encuestas <- primera %>%
  bind_rows(segunda) %>%
@@ -98,18 +101,6 @@ datos_sin_proyectar_indecisos <- encuestas %>%
                           party=="obi" ~ "Otros - Blanco - Indecisos")) %>%
  mutate(encuestadora = gsub("\\[\\d+\\]", "", encuestadora))
 
-#DEDUPLICATES FACTORS IN ENCUESTADORA NAME
-datos_sin_proyectar_indecisos$encuestadora<-as.factor(datos_sin_proyectar_indecisos$encuestadora)
-matches <- unlist(lapply(1:(length(levels(datos_sin_proyectar_indecisos[["encuestadora"]]))-1),
-                         function(x) {max(x,x + agrep(
-                          pattern=levels(datos_sin_proyectar_indecisos[["encuestadora"]])[x],
-                          x=levels(datos_sin_proyectar_indecisos[["encuestadora"]])[-seq_len(x)]
-                         ))}
-))
-#assigns new levels (omits the last level because that doesn't change)
-levels(datos_sin_proyectar_indecisos[["encuestadora"]])[-length(levels(datos_sin_proyectar_indecisos[["encuestadora"]]))] <-  levels(datos_sin_proyectar_indecisos[["encuestadora"]])[matches]
-datos_sin_proyectar_indecisos$encuestadora<-str_trim(datos_sin_proyectar_indecisos$encuestadora)
-
 #Copio el dataframe para que fluidPage tenga de donde sacar los datos
 encuestas_long<-datos_sin_proyectar_indecisos
 #Armo un segundo dataframe con los datos proyectados
@@ -124,20 +115,10 @@ datos_proyeccion_indecisos <- encuestas2 %>%
                           party=="llan" ~ "La Libertad Avanza",
                           party=="obn" ~ "Otros - Blanco - Indecisos")) %>%
  mutate(encuestadora = gsub("\\[\\d+\\]", "", encuestadora))
-#DEDUPLICATES FACTORS IN ENCUESTADORA NAME
-datos_proyeccion_indecisos$encuestadora<-as.factor(datos_proyeccion_indecisos$encuestadora)
-matches <- unlist(lapply(1:(length(levels(datos_proyeccion_indecisos[["encuestadora"]]))-1),
-                         function(x) {max(x,x + agrep(
-                          pattern=levels(datos_proyeccion_indecisos[["encuestadora"]])[x],
-                          x=levels(datos_proyeccion_indecisos[["encuestadora"]])[-seq_len(x)]
-                         ))}
-))
-#assigns new levels (omits the last level because that doesn't change)
-levels(datos_proyeccion_indecisos[["encuestadora"]])[-length(levels(datos_proyeccion_indecisos[["encuestadora"]]))] <-  levels(datos_proyeccion_indecisos[["encuestadora"]])[matches]
 
 df_list<-list("datos_proyeccion_indecisos","datos_sin_proyectar_indecisos")
-datos_proyeccion_indecisos$encuestadora<-str_trim(datos_proyeccion_indecisos$encuestadora)
-enc3<-datos_proyeccion_indecisos %>% select(fecha, encuestadora) %>% unique() %>% group_by(encuestadora) %>% count() %>% filter( n >4 & !(encuestadora %in% c('Management & Fit', 'Giacobbe & Asociados', 'Proyección Consultores'))) %>% pull(encuestadora)
+#No funciona el filtro, no sé por qué
+enc3<-datos_proyeccion_indecisos %>% select(fecha, encuestadora) %>% unique() %>% group_by(encuestadora) %>% count() %>% filter( n >4 & (!encuestadora %in% c('Fixer', 'Proyeccion Consultores', 'CIGP'))) %>% pull(encuestadora)
 n_post_paso <- encuestas %>% group_by(encuestadora,fecha, muestra) %>% filter(encuestadora %in% enc3 & fecha>=as.Date("2023-08-13")) %>% ungroup() %>% count()
 nover25<-if_else(n_post_paso>25, TRUE,FALSE)
 ui <- fluidPage(
@@ -178,7 +159,7 @@ ui <- fluidPage(
      a("Federico Tiberti",
        href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R",
        target = "_blank"),
-     "al cuál agregué las opciones de proyectar votos indecisos, comparar con los resultados electorales 2021 y un slider para ajustar el suavizado. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados. Nota: Por default sólo se incluye en el análisis a encuestadoras con 5 o más encuestas, excluyendo a Management & Fit, Giaccobe & Asociados y Proyección Consultores, con lo cual se obtiene un mejor ajuste a los datos electorales 2021.")
+     "al cuál agregué las opciones de proyectar votos indecisos, comparar con los resultados electorales 2021 y 2023,un slider para ajustar el suavizado, y la posibilidad de aplicar un ajuste separado para las encuestas post-PASO 2023. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados. Nota: Por default sólo se incluye en el análisis a encuestadoras con 5 o más encuestas, excluyendo a CIGP, Proyección Consultores y Fixer, que fueron tres de las encuestadoras con mayor error pre-PASO.")
   ),
   mainPanel(
    ggiraphOutput("pollPlot"),
