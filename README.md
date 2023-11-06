@@ -9,5 +9,9 @@ al cuál agregué las opciones de proyectar votos indecisos, comparar con los re
 Versión interactiva disponible aquí:
 https://rquiroga7.shinyapps.io/Agregador_Encuestas/
 
-El gráfico generado se asimila al siguiente:
+El gráfico generado sin las encuestas pre-ballotage se asimila al siguiente:
 ![plot_encuestas_2023-11-03](https://github.com/rquiroga7/encuestas_app/assets/8103453/2526df27-289b-4915-af93-658cc324797b)
+
+Así se visualizan las encuestas pre-ballotage:
+![image](https://github.com/rquiroga7/encuestas_app/assets/8103453/282c609a-add6-41c1-b2a0-cc87f811b333)
+
