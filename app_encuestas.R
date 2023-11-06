@@ -47,13 +47,17 @@ primera <- tablas[1] %>% as.data.frame() %>%
  mutate(encuestadora = replace_non_ascii(encuestadora))
 
 cuarta <- tablas[7] %>% as.data.frame() %>%
- slice(1:nrow(.)) %>%
+ slice(2:nrow(.)) %>%
  subset(select=1:9) %>%
  setNames(c("fecha", "encuestadora", "muestra", "lla", "jxc",
             "fdt", "blanco", "indecisos", "ventaja")) %>%
   mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01")) %>% filter( !is.na(fecha)) %>%
  filter(fecha >as.Date("2023-10-22")) %>%
- mutate(encuestadora = replace_non_ascii(encuestadora))
+ mutate(encuestadora = replace_non_ascii(encuestadora)) %>%
+ mutate_at(vars(4:9), ~ifelse(. == "-", 0, as.numeric(gsub(",", ".", .)))) %>%
+ mutate_at(vars(3), ~ifelse(. == "-", 0, as.numeric(gsub("\\.", "", gsub(",", ".", .))))) %>%
+ mutate(pos=(100-(blanco+indecisos))/100) %>%
+ mutate(lla=as.character(lla/pos),fdt=as.character(fdt/pos),muestra=as.character(muestra),jxc=as.character(jxc),blanco=as.character(blanco),indecisos=as.character(indecisos),ventaja=as.character(ventaja))
 
 segunda <- tablas[2] %>% as.data.frame() %>%
  slice(1:nrow(.)) %>%
@@ -172,7 +176,7 @@ ui <- fluidPage(
      a("Federico Tiberti",
        href = "https://github.com/fedetiberti/encuestas_app/blob/main/app_encuestas.R",
        target = "_blank"),
-     "al cuál agregué las opciones de proyectar votos indecisos, comparar con los resultados electorales 2021 y 2023,un slider para ajustar el suavizado, y la posibilidad de aplicar un ajuste separado para las encuestas post-PASO 2023. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados. Nota: Por default sólo se incluye en el análisis a encuestadoras con 5 o más encuestas, excluyendo a CIGP, Proyección Consultores y Fixer, que fueron tres de las encuestadoras con mayor error pre-PASO.")
+     "al cuál agregué las opciones de proyectar votos indecisos, comparar con los resultados electorales 2021 y 2023,un slider para ajustar el suavizado, y la posibilidad de aplicar un ajuste separado para las encuestas post-PASO 2023. La inclusión de las encuestas en este agregador no implica un respaldo a sus metodologías ni a la verosimilitud de sus resultados. En las encuestas pre-ballotage se proyectan los blancos e indecisos.")
   ),
   mainPanel(
    ggiraphOutput("pollPlot"),
@@ -254,7 +258,7 @@ server <- function(input, output, session) {
                       values = c("#FFDA00", "#009FE3", "purple", "tomato3", "#283084", "gray66")) +
     theme_light() +
     scale_y_continuous(breaks = seq(0, 60, by = 5), minor_breaks = NULL ,labels = scales::label_number(suffix = "%")) +
-    scale_x_date(date_labels = "%b-%y") +
+    scale_x_date(date_labels = "%d-%b-%y") +
     labs(x = "", y = "", color = "", title = "Encuestas electorales sobre la primera vuelta presidencial de 2023") +
     theme(plot.title = element_text(face="bold", hjust=0.5),
           legend.position = "bottom",
@@ -314,7 +318,7 @@ server <- function(input, output, session) {
                       values = c("#FFDA00", "#009FE3", "purple", "tomato3", "#283084", "gray66")) +
     theme_light() +
     scale_y_continuous(breaks = seq(0, 60, by = 5), minor_breaks = NULL ,labels = scales::label_number(suffix = "%")) +
-    scale_x_date(date_labels = "%b-%y") +
+    scale_x_date(date_labels = "%d-%b-%y") +
     labs(x = "", y = "", color = "", title = "Encuestas electorales sobre la primera vuelta presidencial de 2023") +
     theme(plot.title = element_text(face="bold", hjust=0.5),
           legend.position = "bottom",
