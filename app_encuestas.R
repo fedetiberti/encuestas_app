@@ -272,7 +272,7 @@ server <- function(input, output, session) {
     p<-p + annotate("text", x = as.Date("2023-10-22"), y = 15.5,label="Elecciones generales",angle=90,vjust=0.5)
    }
    if (input$showGeneral == TRUE & input$ballotage==TRUE ){
-    p<-p + annotate("text", x = as.Date("2023-10-22"), y = 53,label="Elecciones generales",angle=90,vjust=0.5)
+    p<-p + annotate("text", x = as.Date("2023-10-22"), y = 48,label="Elecciones generales",angle=90,vjust=0.5)
    }
    rendered_plot <- ggiraph(code = print(p), width_svg = 9, height_svg = 6)
    rendered_plot <- girafe_options(rendered_plot, opts_tooltip(use_fill=TRUE))
@@ -332,7 +332,7 @@ server <- function(input, output, session) {
     p<-p + annotate("text", x = as.Date("2023-10-22"), y = 15.5,label="Elecciones generales",angle=90,vjust=0.5)
    }
    if (input$showGeneral == TRUE & input$ballotage==TRUE ){
-    p<-p + annotate("text", x = as.Date("2023-10-22"), y = 53,label="Elecciones generales",angle=90,vjust=0.5)
+    p<-p + annotate("text", x = as.Date("2023-10-22"), y = 48,label="Elecciones generales",angle=90,vjust=0.5)
    }
    ggsave(file, plot = p, width = 9, height = 6, units = "in", dpi = 300)
   }
