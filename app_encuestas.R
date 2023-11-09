@@ -312,9 +312,9 @@ server <- function(input, output, session) {
     geom_smooth(data=subset(filtered_data(), (fecha<=as.Date("2023-08-13") & input$separate_trends==TRUE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=input$slider) +
     geom_smooth(data=subset(filtered_data(), (fecha>as.Date("2023-08-13") & fecha<as.Date("2023-10-23")  & input$separate_trends==TRUE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=input$slider2,family = "symmetric") +
     geom_smooth(data=subset(filtered_data(), (fecha>as.Date("2023-10-23")  & input$separate_trends==TRUE & input$ballotage==TRUE & encuestadora!="Elecciones legislativas" & encuestadora != "Elecciones generales" & encuestadora!= "Elecciones primarias")),method = "loess", se = input$showSE, aes(fill = party), show.legend = FALSE, span=input$slider2,family = "symmetric") +
-    scale_color_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Hacemos", "Otros - Blanco - Indecisos"),
+    scale_color_manual(breaks = c("Juntos por el Cambio", "Unión por la Patria", "La Libertad Avanza", "Frente de Izquierda", "Hacemos por Nuestro País", "Otros - Blanco - Indecisos"),
                        values = c("#FFDA00", "#009FE3", "purple", "tomato3", "#283084", "gray66")) +
-    scale_fill_manual(breaks = c("Juntos por el Cambio", "Frente de Todos", "La Libertad Avanza", "Frente de Izquierda", "Hacemos", "Otros - Blanco - Indecisos"),
+    scale_fill_manual(breaks = c("Juntos por el Cambio", "Unión por la Patria", "La Libertad Avanza", "Frente de Izquierda", "Hacemos por Nuestro País", "Otros - Blanco - Indecisos"),
                       values = c("#FFDA00", "#009FE3", "purple", "tomato3", "#283084", "gray66")) +
     theme_light() +
     scale_y_continuous(breaks = seq(0, 60, by = 5), minor_breaks = NULL ,labels = scales::label_number(suffix = "%")) +
