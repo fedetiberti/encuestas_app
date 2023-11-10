@@ -56,7 +56,7 @@ cuarta <- tablas[7] %>% as.data.frame() %>%
   mutate_at(vars(4:8), ~ifelse(. == "-", 0, as.numeric(gsub(",", ".", .)))) %>%
   mutate_at(vars(3), ~ifelse(. == "-", 0, as.numeric(gsub("\\.", "", gsub(",", ".", .))))) %>%
   mutate(pos=(100-(blanco+indecisos))/100) %>%
-  mutate(lla=as.character(lla/pos),fdt=as.character(fdt/pos),muestra=as.character(muestra),jxc=as.character(jxc),blanco=as.character("0"),indecisos=as.character("0"),ventaja=as.character(ventaja))
+  mutate(lla=as.character(lla/pos),fdt=as.character(fdt/pos),muestra=as.character(muestra),blanco=as.character("0"),indecisos=as.character("0"),ventaja=as.character(ventaja))
 
 segunda <- tablas[2] %>% as.data.frame() %>%
   slice(1:nrow(.)) %>%
