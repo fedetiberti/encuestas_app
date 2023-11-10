@@ -42,7 +42,7 @@ primera <- tablas[1] %>% as.data.frame() %>%
   subset(select=1:12) %>%
   setNames(c("fecha", "encuestadora", "muestra", "fdt", "jxc",
              "lla", "cf", "fit", "otros", "blanco", "indecisos", "ventaja")) %>%
-  filter(encuestadora != "5 de agosto de 2023") %>%
+ filter(encuestadora != "5 de agosto de 2023" ) %>% filter(encuestadora != "14 de octubre de 2023" ) %>%
   mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01")) %>% filter( !is.na(fecha)) %>%
   mutate(encuestadora = replace_non_ascii(encuestadora))
 
