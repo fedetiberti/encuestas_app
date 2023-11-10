@@ -48,13 +48,12 @@ primera <- tablas[1] %>% as.data.frame() %>%
 
 cuarta <- tablas[7] %>% as.data.frame() %>%
   slice(2:nrow(.)) %>%
-  subset(select=1:9) %>%
-  setNames(c("fecha", "encuestadora", "muestra", "lla", "jxc",
+  setNames(c("fecha", "encuestadora", "muestra", "lla", 
              "fdt", "blanco", "indecisos", "ventaja")) %>%
   mutate(fecha = sapply(fecha, extract_and_parse_date) %>% as.Date(origin = "1970-01-01")) %>% filter( !is.na(fecha)) %>%
   filter(fecha >as.Date("2023-10-22")) %>%
   mutate(encuestadora = replace_non_ascii(encuestadora)) %>%
-  mutate_at(vars(4:9), ~ifelse(. == "-", 0, as.numeric(gsub(",", ".", .)))) %>%
+  mutate_at(vars(4:8), ~ifelse(. == "-", 0, as.numeric(gsub(",", ".", .)))) %>%
   mutate_at(vars(3), ~ifelse(. == "-", 0, as.numeric(gsub("\\.", "", gsub(",", ".", .))))) %>%
   mutate(pos=(100-(blanco+indecisos))/100) %>%
   mutate(lla=as.character(lla/pos),fdt=as.character(fdt/pos),muestra=as.character(muestra),jxc=as.character(jxc),blanco=as.character("0"),indecisos=as.character("0"),ventaja=as.character(ventaja))
